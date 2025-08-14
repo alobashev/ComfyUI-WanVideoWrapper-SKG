@@ -587,12 +587,12 @@ class WanI2VCrossAttention(WanSelfAttention):
             # scaled key guidance
             import datetime
             now = datetime.datetime.now()
-            h = 0.5
-            alpha_ = 7
+            h = 0.3
+            alpha_ = 10
             print(f"Scaled Key Guidance params: h={h}, alpha_={alpha_}, current time={now}")
             img_x_pos = attention(q, k_img*(1), v_img, attention_mode=self.attention_mode)
-            k_noise = torch.randn_like(k_img)
-            img_x_neg = attention(q, k_img*(1+h*k_noise), v_img, attention_mode=self.attention_mode)
+            img_x_neg = attention(q, k_img*(1+h), v_img, attention_mode=self.attention_mode)
+            print(f"img_x_pos.std()={img_x_pos.std()}, (img_x_pos-img_x_neg).std()={(img_x_pos-img_x_neg).std()}")
             img_x = img_x_pos + alpha_*(img_x_pos-img_x_neg)
             img_x = img_x.flatten(2)
             x = x_text + img_x
