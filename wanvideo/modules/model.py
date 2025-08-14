@@ -585,9 +585,11 @@ class WanI2VCrossAttention(WanSelfAttention):
             k_img = self.norm_k_img(self.k_img(clip_embed)).view(b, -1, n, d)
             v_img = self.v_img(clip_embed).view(b, -1, n, d)
             # scaled key guidance
-            h = 0.05
+            import datetime
+            now = datetime.datetime.now()
+            h = 0.07
             alpha_ = 7
-            print(f"Scaled Key Guidance params: h={h}, alpha_={alpha_}")
+            print(f"Scaled Key Guidance params: h={h}, alpha_={alpha_}, current time={now}")
             img_x_pos = attention(q, k_img*(1), v_img, attention_mode=self.attention_mode)
             img_x_neg = attention(q, k_img*(1+h), v_img, attention_mode=self.attention_mode)
             img_x = img_x_pos + alpha_*(img_x_pos-img_x_neg)
