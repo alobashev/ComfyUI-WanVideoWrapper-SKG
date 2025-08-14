@@ -585,7 +585,6 @@ class WanI2VCrossAttention(WanSelfAttention):
             k_img = self.norm_k_img(self.k_img(clip_embed)).view(b, -1, n, d)
             v_img = self.v_img(clip_embed).view(b, -1, n, d)
             # scaled key guidance
-            print(f"Scaled Key Guidance params: h={h}")
             h = 0.15
             alpha_ = 1/h
             print(f"Scaled Key Guidance params: h={h}, alpha_={alpha_}")
