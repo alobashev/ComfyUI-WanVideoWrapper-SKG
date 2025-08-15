@@ -588,8 +588,8 @@ class WanI2VCrossAttention(WanSelfAttention):
             import datetime
             now = datetime.datetime.now()
             # Scaled key guidance parameters
-            h = 0.6
-            alpha_ = 7.0
+            h = 0.1
+            alpha_ = 17.0
             
             # Positive pass (standard attention)
             img_x_pos = attention(q, k_img, v_img, attention_mode=self.attention_mode)
