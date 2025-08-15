@@ -616,7 +616,7 @@ class WanI2VCrossAttention(WanSelfAttention):
 
             img_x_pos = img_x_pos.flatten(2)
             img_x_neg = img_x_neg.flatten(2)
-            
+
             # Apply guidance
             guidance = img_x_pos - img_x_neg
             img_x_skg = img_x_pos + alpha_ * guidance
@@ -630,9 +630,9 @@ class WanI2VCrossAttention(WanSelfAttention):
             
             mask = scale > skg_tau
             adjustment = (norm_positive * skg_tau) / (norm_guidance + 1e-7)
-            nag_guidance = torch.where(mask, nag_guidance * adjustment, nag_guidance)
+            img_x_skg = torch.where(mask, img_x_skg * adjustment, img_x_skg)
             
-            img_x =  nag_guidance * skg_beta + img_x_pos * (1 - skg_beta)
+            img_x =  img_x_skg * skg_beta + img_x_pos * (1 - skg_beta)
 
             img_x = img_x
             x = x_text + img_x
