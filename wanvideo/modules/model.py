@@ -587,8 +587,8 @@ class WanI2VCrossAttention(WanSelfAttention):
             # scaled key guidance
             import datetime
             now = datetime.datetime.now()
-            h = 0.07
-            alpha_ = 6
+            h = 0.15
+            alpha_ = 7
             print(f"Scaled Key Guidance params: h={h}, alpha_={alpha_}, current time={now}")
             img_x_pos = attention(q, k_img*(1), v_img, attention_mode=self.attention_mode)
             img_x_neg = attention(q, k_img*(1+h), v_img, attention_mode=self.attention_mode)
