@@ -590,6 +590,8 @@ class WanI2VCrossAttention(WanSelfAttention):
             # Scaled key guidance parameters
             h = 0.1
             alpha_ = 17.0
+            skg_tau = 2.5
+            skg_beta = 0.25
             
             # Positive pass (standard attention)
             img_x_pos = attention(q, k_img, v_img, attention_mode=self.attention_mode)
@@ -612,11 +614,27 @@ class WanI2VCrossAttention(WanSelfAttention):
             # Negative pass using the regularized, semantically perturbed key
             img_x_neg = attention(q, regularized_perturbed_k, v_img, attention_mode=self.attention_mode)
 
+            img_x_pos = img_x_pos.flatten(2)
+            img_x_neg = img_x_neg.flatten(2)
+            
             # Apply guidance
             guidance = img_x_pos - img_x_neg
-            img_x = img_x_pos + alpha_ * guidance
+            img_x_skg = img_x_pos + alpha_ * guidance
             
-            img_x = img_x.flatten(2)
+            # nag-like normalization
+            norm_positive = torch.norm(img_x_pos, p=1, dim=-1, keepdim=True)
+            norm_guidance = torch.norm(img_x_skg, p=1, dim=-1, keepdim=True)
+            
+            scale = norm_guidance / norm_positive
+            scale = torch.nan_to_num(scale, nan=10.0)
+            
+            mask = scale > skg_tau
+            adjustment = (norm_positive * skg_tau) / (norm_guidance + 1e-7)
+            nag_guidance = torch.where(mask, nag_guidance * adjustment, nag_guidance)
+            
+            img_x =  nag_guidance * skg_beta + img_x_pos * (1 - skg_beta)
+
+            img_x = img_x
             x = x_text + img_x
 
             print(f"Scaled Key Guidance params: h={h}, alpha_={alpha_}, current time={now}")
