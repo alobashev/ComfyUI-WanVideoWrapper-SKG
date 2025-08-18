@@ -588,31 +588,18 @@ class WanI2VCrossAttention(WanSelfAttention):
             import datetime
             now = datetime.datetime.now()
             # Scaled key guidance parameters
-            h = 1.0
-            alpha_ = 15.0
+            h = 0.07
+            alpha_ = 7.0
             skg_tau = 1.15
             skg_beta = 0.5
             
             # Positive pass (standard attention)
             img_x_pos = attention(q, k_img, v_img, attention_mode=self.attention_mode)
 
-            # 1. Semantic Noise Perturbation
-            # Generate noise correlated with the key vectors' feature distribution.
-            # This creates a more meaningful "negative" direction than random noise.
-            k_noise = torch.randn_like(k_img) * k_img.std(dim=-1, keepdim=True)
-            perturbed_k = k_img * (1 + h * k_noise)
-
-            # 2. Regularization of Perturbed Keys
-            # Preserve the norm (magnitude) of the original key vectors to keep them on-manifold.
-            # This helps prevent artifacts and improves guidance stability.
-            original_norm = torch.linalg.norm(k_img, dim=-1, keepdim=True)
-            perturbed_norm = torch.linalg.norm(perturbed_k, dim=-1, keepdim=True)
-            
-            # Add a small epsilon to avoid division by zero
-            regularized_perturbed_k = perturbed_k * (original_norm / (perturbed_norm + 1e-6))
+            perturbed_k = k_img * (1 + h)
             
             # Negative pass using the regularized, semantically perturbed key
-            img_x_neg = attention(q, regularized_perturbed_k, v_img, attention_mode=self.attention_mode)
+            img_x_neg = attention(q, perturbed_k, v_img, attention_mode=self.attention_mode)
 
             img_x_pos = img_x_pos.flatten(2)
             img_x_neg = img_x_neg.flatten(2)
@@ -637,8 +624,8 @@ class WanI2VCrossAttention(WanSelfAttention):
             img_x = img_x
             x = x_text + img_x
 
-            print(f"Scaled Key Guidance params: h={h}, alpha_={alpha_}, current time={now}")
-            print(f"img_x_pos.std()={img_x_pos.std()}, (img_x_pos-img_x_neg).std()={(img_x_pos-img_x_neg).std()}")
+            #print(f"Scaled Key Guidance params: h={h}, alpha_={alpha_}, current time={now}")
+            #print(f"img_x_pos.std()={img_x_pos.std()}, (img_x_pos-img_x_neg).std()={(img_x_pos-img_x_neg).std()}")
             
         else:
             x = x_text
